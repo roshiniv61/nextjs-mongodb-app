@@ -9,6 +9,9 @@ export const ValidateProps = {
   post: {
     content: { type: 'string', minLength: 1, maxLength: 280 },
   },
+  category: {
+    content: { type: 'string', minLength: 1, maxLength: 280 },
+  },
   comment: {
     content: { type: 'string', minLength: 1, maxLength: 280 },
   },

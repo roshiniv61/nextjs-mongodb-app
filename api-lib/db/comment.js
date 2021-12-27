@@ -27,10 +27,49 @@ export async function findComments(db, postId, before, limit = 10) {
     .toArray();
 }
 
+export async function findComments(db, categoryId, before, limit = 10) {
+  return db
+    .collection('comments')
+    .aggregate([
+      {
+        $match: {
+          categoryId: new ObjectId(categoryId),
+          ...(before && { createdAt: { $lt: before } }),
+        },
+      },
+      { $sort: { _id: -1 } },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'creatorId',
+          foreignField: '_id',
+          as: 'creator',
+        },
+      },
+      { $unwind: '$creator' },
+      { $project: dbProjectionUsers('creator.') },
+    ])
+    .toArray();
+}
+
 export async function insertComment(db, postId, { content, creatorId }) {
   const comment = {
     content,
     postId: new ObjectId(postId),
+    creatorId,
+    createdAt: new Date(),
+  };
+  const { insertedId } = await db.collection('comments').insertOne(comment);
+  comment._id = insertedId;
+  return comment;
+}
+
+
+export async function insertComment(db, categoryId, { content, creatorId }) {
+  const comment = {
+    content,
+    postId: new ObjectId(categoryId),
     creatorId,
     createdAt: new Date(),
   };
